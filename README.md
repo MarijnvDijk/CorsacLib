@@ -52,6 +52,16 @@ logchain_size : int
 To start logging, run the following:
 ```python
 logHandler.log({"user":"dev-umla", "action":"restarted firmware"})
+
+"""
+### Parameters
+        
+log : dict
+    The log to write.
+join_queue : bool
+    Whether to process all items in the log queue.
+    A blocking operation.
+"""
 ```
 
 
