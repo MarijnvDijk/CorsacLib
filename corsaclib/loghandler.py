@@ -33,10 +33,10 @@ class LogHandler:
     """
 
     def __init__(self,
-                 config_file="config.json",
+                 config_file='config.json',
                  filetype=FileType.JSON,
                  delete_config=True,
-                 directory="logs",
+                 directory='logs',
                  create_directory=True,
                  logchain_size=1000) -> None:
         """
@@ -68,7 +68,7 @@ class LogHandler:
         self._queue = queue.Queue()
         self._load_config()
         self._verify_config()
-        self._key = ""
+        self._key = ''
         self._update_key(initialized=False)
         self._initialize_logs()
         self._thread = threading.Thread(target=self._worker, daemon=True)
@@ -86,7 +86,7 @@ class LogHandler:
         if (os.path.isfile(self._config_file) == False):
             raise FileNotFoundError(f"The configuration file ({self._config_file}) could not be located at the specified path.")
         
-        config = open(self._config_file, "r").read()
+        config = open(self._config_file, 'r').read()
 
         if (filetype == FileType.JSON):
             self._config = json.loads(config)
@@ -101,7 +101,7 @@ class LogHandler:
 
     def _verify_config(self) -> None:
         """
-        Verifies the configuration is correct
+        Verifies that the configuration is correct
         """
         if ('devicename' not in self._config.keys() or 'chainid' not in self._config.keys()
             or 'chainroot' not in self._config.keys() or 'sig' not in self._config.keys()):
@@ -124,7 +124,7 @@ class LogHandler:
         self._cur_log_count = 0
         filename = f"{self._logchain_uuid}-{str(self._log_number)}.log"
         self._cur_log_path = os.path.join(self._directory, filename)
-        self._cur_log_file = open(self._cur_log_path, "a+")
+        self._cur_log_file = open(self._cur_log_path, 'a+')
 
     def _update_key(self, initialized=True) -> None:
         """
@@ -132,9 +132,9 @@ class LogHandler:
         """
         h = hashlib.sha256()
         if (initialized == False):
-            h.update(bytes(self._config["chainroot"], 'utf8'))
+            h.update(bytes(self._config['chainroot'], 'utf8'))
             self._key = h.hexdigest()
-            del self._config["chainroot"]
+            del self._config['chainroot']
         else:
             h.update(bytes(self._key, 'utf8'))
             self._key = h.hexdigest()
@@ -150,7 +150,7 @@ class LogHandler:
             self._cur_log_count = 0
             filename = f"{self._logchain_uuid}-{str(self._log_number)}.log"
             self._cur_log_path = os.path.join(self._directory, filename)
-            self._cur_log_file = open(self._cur_log_path, "a+")
+            self._cur_log_file = open(self._cur_log_path, 'a+')
 
     def _worker(self):
         """
@@ -159,19 +159,19 @@ class LogHandler:
         while True:
             try:
                 log = self._queue.get()
-                data = json.dumps(log).encode("utf8")
+                data = bytes(json.dumps(log), 'utf8')
                 padded_data = Padding.pad(data, AES.block_size)
                 encrypter = AES.new(bytes.fromhex(self._key), AES.MODE_CBC)
                 self._update_key()
                 cipher = encrypter.encrypt(padded_data)
                 iv = encrypter.iv
-                signature = sphincs.sign(cipher + iv, bytes.fromhex(self._config["sig"]["private"]))
-                del log["data"]
+                signature = sphincs.sign(cipher + iv, bytes.fromhex(self._config['sig']['private']))
+                del log['data']
                 logdata = {}
                 logdata.update(log)
-                logdata["cipher"] = codecs.encode(cipher, 'hex').decode('utf8')
-                logdata["iv"] = codecs.encode(iv, 'hex').decode('utf8')
-                logdata["sig"] = codecs.encode(signature, 'hex').decode('utf8')
+                logdata['cipher'] = codecs.encode(cipher, 'hex').decode('utf8')
+                logdata['iv'] = codecs.encode(iv, 'hex').decode('utf8')
+                logdata['sig'] = codecs.encode(signature, 'base64').rstrip(b'\n').decode('utf8')
                 self._cur_log_file.write(f"{json.dumps(logdata)}\n")
                 self._queue.task_done()
             except Exception as e:
@@ -192,11 +192,11 @@ class LogHandler:
         """
         self._check_logfile()
         log = {}
-        log["timestamp"] = time.time().__round__()
-        log["device_name"] = self._config["devicename"]
-        log["chain_id"] = self._config["chainid"]
-        log["chain_link"] = self._chain_link
-        log["data"] = data
+        log['timestamp'] = time.time().__round__()
+        log['device_name'] = self._config['devicename']
+        log['chain_id'] = self._config['chainid']
+        log['chain_link'] = self._chain_link
+        log['data'] = data
         self._chain_link += 1
         self._cur_log_count += 1
         self._queue.put(log)
