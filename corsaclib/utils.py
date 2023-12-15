@@ -6,11 +6,11 @@ class FileType(Enum):
     JSON = "json"
     YAML = "yaml"
 
-def secure_delete(file, passes=5):
-    with open(file, "ba+") as file:
+def secure_delete(path, passes=5):
+    with open(path, "ba+") as file:
         length = file.tell()
-    with open(file, "br+") as file:
+    with open(path, "br+") as file:
         for i in range(passes):
             file.seek(0)
             file.write(os.urandom(length))
-    os.remove(file)
+    os.remove(path)

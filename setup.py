@@ -24,7 +24,7 @@ setup(
     keywords=['python', 'log management', 'key management', 'files', 'sockets'],
     classifiers=[
         "Development Status :: 1 - Planning",
-        "Intended Audience :: Corsac Users",
+        "Intended Audience :: Developers",
         "Programming Language :: Python :: 3",
         "Operating System :: Unix",
         "Operating System :: MacOS :: MacOS X",
