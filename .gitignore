@@ -163,3 +163,4 @@ cython_debug/
 test.py
 getkey.py
 config.json
+config.yml

@@ -25,11 +25,38 @@ class LogHandler:
     Class for the LogHandler.
     This class is used to handle all the logging and file activity.
 
-    Attributes
-    ----------
+    ### Attributes
 
-    Methods
-    -------
+    private:
+        _config_file : str
+            The path where the config file is stored.
+        _filetype : str
+            The type of the config file ("json" or "yaml").
+        _delete_config : bool
+            Whether to delete the config file after initialization.
+        _directory : str
+            The location where the logs will be stored.
+        _create_directory : bool
+            Whether the specified log directory should be created.
+        _logchain_size : int
+            The maximum size of the logchain.
+        _queue : Queue
+            A queue to store logs during processing.
+        _key : str
+            The encryption key.
+
+    ### Methods
+
+    private:
+        _load_config : method that loads the config file into _config.
+        _verify_config : method that verifies the config file contains all required keys.
+        _update_key : method that updates the key `k` to `k+1`.
+        _initialize_logs : method that initializes the log file and the related attributes.
+        _worker : the queue worker that encrypts, signs, and writes logdata to the log file.
+        _check_logfile : checks if the logfile is at its maximum log chain size.
+
+    public:
+        log : adds logdata to the log processing queue.
     """
 
     def __init__(self,
@@ -44,12 +71,12 @@ class LogHandler:
 
         ### Parameters
 
-        configfile : str
+        config_file : str
             The path to the configuration file.
         filetype : FileType
             The type of the configuration file.
             json or yaml.
-        deleteconfig : bool
+        delete_config : bool
             Whether the configuration file should be scrubbed after loading.
         directory : str
             The directory where the logs are stored.
@@ -101,11 +128,14 @@ class LogHandler:
 
     def _verify_config(self) -> None:
         """
-        Verifies that the configuration is correct
+        Verifies that the configuration is correct.
         """
         if ('devicename' not in self._config.keys() or 'chainid' not in self._config.keys()
             or 'chainroot' not in self._config.keys() or 'sig' not in self._config.keys()):
             raise ValueError(f"Config does not hold all expected keys: {['devicename', 'chainid', 'chainroot', 'sig']}")
+
+        if ('private' not in self._config["sig"].keys()):
+            raise ValueError(f"Config key 'sig' does not hold all expected keys: {['private']}")
         
     def _initialize_logs(self) -> None:
         """
@@ -154,7 +184,7 @@ class LogHandler:
 
     def _worker(self):
         """
-        Gets a log from the queue to encrypt and sign
+        Gets a log from the queue to encrypt and sign.
         """
         while True:
             try:
